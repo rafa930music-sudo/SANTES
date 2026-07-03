@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SANTES</title>
+
+  <!-- Favicon -->
+  <!-- ===== FAVICON con la imagen de portada ===== -->
+  <link rel="icon" type="image/png" href="images/portada.png" />
+  <link rel="apple-touch-icon" href="images/portada.png" />
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+
+  <style>
+    /* ===== RESET Y BASE ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      font-family: 'Inter', sans-serif;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ===== SPLASH SCREEN (solo imagen) ===== */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+      padding: 20px;
+    }
+    #splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #splash .splash-logo {
+      width: 200px;
+      max-width: 70%;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.04);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+
+    /* ===== BOTÓN DE VOLUMEN ===== */
+    .volume-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid #eaeaea;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #000000;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    .volume-btn:hover {
+      background: #ffffff;
+      transform: scale(1.04);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+    .volume-btn:active {
+      transform: scale(0.94);
+    }
+    .volume-btn.muted {
+      color: #999999;
+    }
+
+    /* ===== CONTENIDO PRINCIPAL ===== */
+    .container {
+      max-width: 500px;
+      width: 100%;
+      padding: 20px 10px;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .container.visible {
+      opacity: 1;
+    }
+
+    .cover-image {
+      display: block;
+      width: 100%;
+      max-width: 260px;
+      margin: 0 auto 35px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ===== CONTADOR ===== */
+    .countdown {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 30px;
+    }
+
+    .countdown-item {
+      min-width: 56px;
+    }
+
+    .countdown-number {
+      font-weight: 700;
+      font-size: clamp(3rem, 10vw, 4.8rem);
+      line-height: 1.1;
+      color: #000000;
+      letter-spacing: -1px;
+      display: block;
+    }
+
+    .countdown-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #999999;
+      margin-top: 4px;
+      display: block;
+    }
+
+    .countdown-sep {
+      font-size: 2.4rem;
+      font-weight: 300;
+      color: #cccccc;
+      align-self: center;
+      padding-bottom: 6px;
+    }
+
+    /* ===== ENLACE SPOTIFY ===== */
+    .launch-link-wrapper {
+      display: none;
+      margin: 30px 0 20px;
+    }
+
+    .launch-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      background: #191414;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 1.2rem;
+      padding: 16px 32px;
+      border-radius: 60px;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .launch-link:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    .launch-link:active {
+      transform: scale(0.96);
+    }
+
+    .launch-link .spotify-icon {
+      font-size: 2rem;
+      color: #1DB954;
+      display: flex;
+      align-items: center;
+    }
+
+    .launch-link .spotify-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.2;
+    }
+
+    .launch-link .spotify-text .small {
+      font-size: 0.6rem;
+      font-weight: 400;
+      color: #b3b3b3;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .launch-link .spotify-text .main {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 500px) {
+      .container { padding: 10px; }
+      .countdown { gap: 6px; }
+      .countdown-item { min-width: 42px; }
+      .countdown-number { font-size: 2.4rem; }
+      .countdown-sep { font-size: 2rem; padding-bottom: 4px; }
+      .cover-image { max-width: 200px; }
+      .launch-link { padding: 14px 24px; font-size: 1rem; gap: 10px; }
+      .launch-link .spotify-icon { font-size: 1.6rem; }
+      .launch-link .spotify-text .main { font-size: 1rem; }
+      .volume-btn { top: 12px; right: 12px; width: 40px; height: 40px; font-size: 1.2rem; }
+      #splash .splash-logo { max-width: 80%; }
+    }
+    @media (max-width: 380px) {
+      .countdown-item { min-width: 32px; }
+      .countdown-number { font-size: 1.8rem; }
+      .countdown-label { font-size: 0.5rem; }
+      .launch-link { padding: 12px 18px; gap: 8px; flex-wrap: wrap; justify-content: center; }
+      .launch-link .spotify-text .main { font-size: 0.9rem; }
+      .launch-link .spotify-text .small { font-size: 0.5rem; }
+      .volume-btn { width: 36px; height: 36px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== SPLASH SCREEN (solo imagen) ===== -->
+<div id="splash">
+  <img class="splash-logo" src="images/portada.png" alt="SaruSaul" />
+</div>
+
+<!-- ===== BOTÓN DE VOLUMEN ===== -->
+<button class="volume-btn muted" id="volumeBtn" aria-label="Activar/desactivar sonido">
+  <i class="fas fa-volume-mute" id="volumeIcon"></i>
+</button>
+
+<!-- ===== CONTENIDO PRINCIPAL ===== -->
+<div class="container" id="mainContainer">
+
+  <!-- Portada -->
+  <img class="cover-image" src="images/portada.png" alt="Portada" />
+
+  <!-- Contador -->
+  <div class="countdown" id="countdown">
+    <div class="countdown-item">
+      <span class="countdown-number" id="days">00</span>
+      <span class="countdown-label">Días</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-item">
+      <span class="countdown-number" id="hours">00</span>
+      <span class="countdown-label">Horas</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-item">
+      <span class="countdown-number" id="minutes">00</span>
+      <span class="countdown-label">Minutos</span>
+    </div>
+    <span class="countdown-sep">:</span>
+    <div class="countdown-item">
+      <span class="countdown-number" id="seconds">00</span>
+      <span class="countdown-label">Segundos</span>
+    </div>
+  </div>
+
+  <!-- Enlace Spotify (oculto hasta el lanzamiento) -->
+  <div class="launch-link-wrapper" id="launchLinkWrapper">
+    <a href="#" class="launch-link" id="launchLink" target="_blank">
+      <span class="spotify-icon"><i class="fab fa-spotify"></i></span>
+      <span class="spotify-text">
+        <span class="small">Ya disponible en</span>
+        <span class="main">Spotify</span>
+      </span>
+    </a>
+  </div>
+
+</div>
+
+<!-- ===== AUDIO ===== -->
+<audio id="bgMusic" loop autoplay muted preload="auto">
+  <source src="SANTES-PREVIEW.wav" type="audio/wav" />
+  Tu navegador no soporta audio.
+</audio>
+
+<script>
+  // ============================================================
+  // 0. SPLASH: ocultar después de 2 segundos o al hacer clic
+  // ============================================================
+  const splash = document.getElementById('splash');
+  const mainContainer = document.getElementById('mainContainer');
+
+  function hideSplash() {
+    splash.classList.add('hidden');
+    setTimeout(() => {
+      mainContainer.classList.add('visible');
+    }, 100);
+  }
+
+  // Ocultar automáticamente después de 2 segundos
+  setTimeout(hideSplash, 2000);
+
+  // También al hacer clic en el splash
+  splash.addEventListener('click', hideSplash);
+  splash.addEventListener('touchstart', hideSplash);
+
+  // ============================================================
+  // CONFIGURACIÓN
+  // ============================================================
+  const launchDate = new Date(2026, 6, 24, 0, 0, 0).getTime();
+  const releaseLink = 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT';
+
+  // ============================================================
+  // 1. CONTADOR
+  // ============================================================
+  const daysEl = document.getElementById('days');
+  const hoursEl = document.getElementById('hours');
+  const minutesEl = document.getElementById('minutes');
+  const secondsEl = document.getElementById('seconds');
+  const countdownEl = document.querySelector('.countdown');
+  const launchLinkWrapper = document.getElementById('launchLinkWrapper');
+  const launchLink = document.getElementById('launchLink');
+
+  launchLink.href = releaseLink;
+
+  let confettiLaunched = false;
+
+  function updateCountdown() {
+    const now = Date.now();
+    let diff = launchDate - now;
+
+    if (diff <= 0) {
+      countdownEl.style.display = 'none';
+      launchLinkWrapper.style.display = 'block';
+      clearInterval(interval);
+      if (!confettiLaunched) {
+        confettiLaunched = true;
+        launchConfetti();
+      }
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    daysEl.textContent = String(days).padStart(2, '0');
+    hoursEl.textContent = String(hours).padStart(2, '0');
+    minutesEl.textContent = String(minutes).padStart(2, '0');
+    secondsEl.textContent = String(seconds).padStart(2, '0');
+  }
+
+  const interval = setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // ============================================================
+  // 2. CONTROL DE VOLUMEN (mute/unmute)
+  // ============================================================
+  const audio = document.getElementById('bgMusic');
+  const volumeBtn = document.getElementById('volumeBtn');
+  const volumeIcon = document.getElementById('volumeIcon');
+
+  let isMuted = true;
+
+  function updateVolumeUI() {
+    if (isMuted) {
+      audio.muted = true;
+      volumeIcon.className = 'fas fa-volume-mute';
+      volumeBtn.classList.add('muted');
+    } else {
+      audio.muted = false;
+      volumeIcon.className = 'fas fa-volume-up';
+      volumeBtn.classList.remove('muted');
+    }
+  }
+
+  volumeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    isMuted = !isMuted;
+    updateVolumeUI();
+    if (!isMuted) {
+      audio.play().catch(() => {});
+    }
+  });
+
+  // ============================================================
+  // 3. ACTIVAR SONIDO AL PRIMER CLIC (solo si no se usó el botón)
+  // ============================================================
+  function activateSound() {
+    if (audio.muted) {
+      isMuted = false;
+      updateVolumeUI();
+      audio.play().catch(() => {});
+    }
+    document.removeEventListener('click', activateSound);
+    document.removeEventListener('touchstart', activateSound);
+  }
+
+  document.addEventListener('click', activateSound);
+  document.addEventListener('touchstart', activateSound);
+
+  // Inicializar UI (mute por defecto)
+  updateVolumeUI();
+
+  // ============================================================
+  // 4. CONFETI
+  // ============================================================
+  function launchConfetti() {
+    const duration = 3 * 1000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 7,
+        startVelocity: 30,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+      confetti({
+        particleCount: 5,
+        startVelocity: 20,
+        spread: 40,
+        origin: { y: 0.4 }
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+
+    confetti({
+      particleCount: 80,
+      spread: 100,
+      origin: { y: 0.5 }
+    });
+  }
+
+  // ============================================================
+  // AYUDA PARA PERSONALIZAR
+  // ============================================================
+  console.log('=== PERSONALIZACIÓN ===');
+  console.log('📅 Fecha: modifica launchDate (línea 179)');
+  console.log('🔗 Enlace: modifica releaseLink (línea 180)');
+  console.log('🎵 Audio: cambia el src en <source> (línea 168)');
+  console.log('🖼️ Portada: cambia el src de las imágenes (líneas 62, 74 y 96)');
+</script>
+</body>
+</html>
